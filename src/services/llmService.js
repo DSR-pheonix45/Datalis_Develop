@@ -339,7 +339,7 @@ async function callGeminiAPI(request) {
     if (!GEMINI_API_KEY) throw new Error("Gemini API key not configured");
 
     // Using v1beta endpoint which has better support for latest models
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
 
     const systemPrompt = `### IDENTITY
 You are Dabby Consultant, an elite Financial Auditor and Forensic Accountant. You operate with absolute precision and ZERO tolerance for fabrication.
@@ -403,7 +403,7 @@ Current System Date: ${new Date().toLocaleDateString('en-US', { weekday: 'long',
     return {
       response: responseText,
       context: request.context,
-      model: "gemini-1.5-flash"
+      model: "gemini-1.5-flash-latest"
     };
   } catch (error) {
     console.error("❌ Gemini API call failed:", error);
