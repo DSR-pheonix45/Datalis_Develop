@@ -130,7 +130,7 @@ export default function About() {
                         className={`text-lg md:text-xl max-w-2xl mx-auto ${isDark ? "text-[#787878]" : "text-gray-600"
                             }`}
                     >
-                        Founded in 2024, Datalis is revolutionizing how businesses handle data analysis and decision-making through advanced AI technologies.
+                        Founded in 2025, Datalis is revolutionizing how businesses handle data analysis and decision-making through advanced AI technologies.
                     </motion.p>
                 </div>
             </section>

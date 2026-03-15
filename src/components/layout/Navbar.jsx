@@ -8,7 +8,7 @@ import BrandLogo from "../common/BrandLogo";
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isProductOpen, setIsProductOpen] = useState(false);
+
   const { theme, toggleTheme } = useTheme();
   const { user, profile } = useAuth();
   const location = useLocation();
@@ -70,96 +70,13 @@ export default function Navbar() {
               />
             </Link>
 
-            {/* Product Dropdown */}
-            <div
-              className="relative group"
-              onMouseEnter={() => setIsProductOpen(true)}
-              onMouseLeave={() => setIsProductOpen(false)}
-            >
-              <button
-                className={`flex items-center gap-1 text-[14.4px] font-mono font-medium px-4 py-2 transition-all duration-200 relative ${theme === "dark" ? "text-white " : "text-[#292929] "
-                  }`}
-              >
-                Product
-                <svg
-                  className={`w-4 h-4 transition-transform duration-200 ${isProductOpen ? "rotate-180" : ""}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-                <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-[#81E6D9] transition-transform duration-200 origin-left ${isProductOpen ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`}></span>
-              </button>
-
-              {/* Simple Dropdown Menu */}
-              {isProductOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 8 }}
-                  transition={{ duration: 0.15, ease: "easeOut" }}
-                  className="absolute top-full left-0 pt-3"
-                >
-                  <div className={`w-64 rounded-xl border shadow-xl p-2 ${theme === "dark"
-                    ? "bg-[#0a0a0a] border-white/10"
-                    : "bg-white border-gray-200"
-                    }`}
-                  >
-                    <Link
-                      to="/product"
-                      className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${theme === "dark" ? "hover:bg-white/5" : "hover:bg-gray-50"}`}
-                    >
-                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${theme === "dark" ? "bg-[#81E6D9]/10" : "bg-[#81E6D9]/15"}`}>
-                        <svg className="w-5 h-5 text-[#81E6D9]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className={`font-semibold text-sm ${theme === "dark" ? "text-white" : "text-[#1a1a1a]"}`}>Dabby AI</p>
-                        <p className={`text-xs ${theme === "dark" ? "text-gray-500" : "text-gray-400"}`}>AI Financial Assistant</p>
-                      </div>
-                    </Link>
-                  </div>
-                </motion.div>
-              )}
-            </div>
-
             {/* About Link */}
             <Link
               to="/about"
-              className={`relative group text-[14.4px] font-mono font-medium px-4 py-2 transition-all duration-200 ${theme === "dark" ? "text-white " : "text-[#292929] "
-                }`}
+              className={`relative group text-[14.4px] font-mono font-medium px-4 py-2 transition-all duration-200 ${theme === "dark" ? "text-white " : "text-[#292929] "}`}
             >
               About
-              {/* Hover underline */}
-              <span
-                className={`absolute bottom-0 left-0 w-full h-0.5 bg-[#81E6D9] transition-transform duration-200 origin-left ${isActive("/about")
-                  ? "scale-x-100"
-                  : "scale-x-0 group-hover:scale-x-100"
-                  }`}
-              ></span>
-            </Link>
-
-            {/* Features Link */}
-            <Link
-              to="/features"
-              className={`relative group text-[14.4px] font-mono font-medium px-4 py-2 transition-all duration-200 ${theme === "dark" ? "text-white " : "text-[#292929] "
-                }`}
-            >
-              Features
-              {/* Hover underline */}
-              <span
-                className={`absolute bottom-0 left-0 w-full h-0.5 bg-[#81E6D9] transition-transform duration-200 origin-left ${isActive("/features")
-                  ? "scale-x-100"
-                  : "scale-x-0 group-hover:scale-x-100"
-                  }`}
-              ></span>
+              <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-[#81E6D9] transition-transform duration-200 origin-left ${isActive("/about") ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`} />
             </Link>
 
             {/* Templates Link */}
@@ -314,31 +231,10 @@ export default function Navbar() {
             >
               <div className="flex flex-col gap-2 px-4">
                 <Link
-                  to="/product"
-                  className={`text-[14.4px] font-mono font-medium px-4 py-3 text-left transition-colors duration-200 ${theme === "dark"
-                    ? "text-white hover:text-[#81E6D9]"
-                    : "text-[#292929] hover:text-[#0D9488]"
-                    }`}
-                >
-                  Product - Dabby AI
-                </Link>
-                <Link
                   to="/about"
-                  className={`text-[14.4px] font-mono font-medium px-4 py-3 text-left transition-colors duration-200 ${theme === "dark"
-                    ? "text-white hover:text-[#81E6D9]"
-                    : "text-[#292929] hover:text-[#0D9488]"
-                    }`}
+                  className={`text-[14.4px] font-mono font-medium px-4 py-3 text-left transition-colors duration-200 ${theme === "dark" ? "text-white hover:text-[#81E6D9]" : "text-[#292929] hover:text-[#0D9488]"}`}
                 >
                   About
-                </Link>
-                <Link
-                  to="/features"
-                  className={`text-[14.4px] font-mono font-medium px-4 py-3 text-left transition-colors duration-200 ${theme === "dark"
-                    ? "text-white hover:text-[#81E6D9]"
-                    : "text-[#292929] hover:text-[#0D9488]"
-                    }`}
-                >
-                  Features
                 </Link>
                 <Link
                   to="/templates"

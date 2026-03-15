@@ -2,6 +2,8 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
+import { Link } from "react-router-dom";
+import { saveRedirectIntent } from "../../utils/redirectUtility";
 
 const plans = [
     {
@@ -131,19 +133,34 @@ export default function Pricing() {
                                 ))}
                             </ul>
 
-                            <a
-                                href={plan.link}
-                                target={plan.link.startsWith("http") ? "_blank" : "_self"}
-                                rel={plan.link.startsWith("http") ? "noopener noreferrer" : ""}
-                                className={`block w-full py-4 px-6 rounded-2xl text-center font-bold transition-all duration-200 ${plan.highlight
-                                    ? "bg-[#81E6D9] text-black hover:bg-[#70d4c7] hover:scale-[1.02]"
-                                    : isDark
-                                        ? "bg-white/10 text-white hover:bg-white/20"
-                                        : "bg-black text-white hover:bg-gray-800"
-                                    }`}
-                            >
-                                {plan.cta}
-                            </a>
+                            {plan.link.startsWith("http") ? (
+                                <a
+                                    href={plan.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={`block w-full py-4 px-6 rounded-2xl text-center font-bold transition-all duration-200 ${plan.highlight
+                                        ? "bg-[#81E6D9] text-black hover:bg-[#70d4c7] hover:scale-[1.02]"
+                                        : isDark
+                                            ? "bg-white/10 text-white hover:bg-white/20"
+                                            : "bg-black text-white hover:bg-gray-800"
+                                        }`}
+                                >
+                                    {plan.cta}
+                                </a>
+                            ) : (
+                                <Link
+                                    to={plan.link}
+                                    onClick={() => saveRedirectIntent("/pricing")}
+                                    className={`block w-full py-4 px-6 rounded-2xl text-center font-bold transition-all duration-200 ${plan.highlight
+                                        ? "bg-[#81E6D9] text-black hover:bg-[#70d4c7] hover:scale-[1.02]"
+                                        : isDark
+                                            ? "bg-white/10 text-white hover:bg-white/20"
+                                            : "bg-black text-white hover:bg-gray-800"
+                                        }`}
+                                >
+                                    {plan.cta}
+                                </Link>
+                            )}
                         </motion.div>
                     ))}
                 </div>

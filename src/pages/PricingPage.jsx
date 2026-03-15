@@ -14,7 +14,7 @@ export default function PricingPage() {
       {/* Simple Header for Pricing Page */}
       <div className="pt-12 pb-6 px-6 flex justify-center">
         <Link to="/">
-          <BrandLogo iconSize={48} label="Datalis" />
+          <BrandLogo iconSize={48} label="Dabby" />
         </Link>
       </div>
 

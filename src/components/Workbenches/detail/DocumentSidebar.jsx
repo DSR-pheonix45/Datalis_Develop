@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   BsX, 
   BsUpload, 
@@ -41,24 +42,23 @@ const STATUS_CONFIG = {
 
 export default function DocumentSidebar({ isOpen, onClose, workbenchId }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
   const [selectedType, setSelectedType] = useState('invoice');
   const [showTypeSelector, setShowTypeSelector] = useState(false);
-  const fileInputRef = useRef(null);
 
   useEffect(() => {
-    if (isOpen && workbenchId) {
+    if (isOpen) {
       fetchDocuments();
     }
-  }, [isOpen, workbenchId]);
+  }, [isOpen]);
 
   // Status Polling
   useEffect(() => {
     let interval;
     const needsPolling = documents.some(doc => 
-      ['uploaded', 'parsing', 'UPLOADED', 'PARSING'].includes(doc.processing_status)
+      ['pending', 'processing'].includes(doc.status?.toLowerCase())
     );
 
     if (isOpen && needsPolling) {
@@ -76,11 +76,16 @@ export default function DocumentSidebar({ isOpen, onClose, workbenchId }) {
     try {
       if (!silent) setLoading(true);
 
-      const { data, error } = await supabase
-        .from("workbench_documents")
+      let query = supabase
+        .from("user_datasets")
         .select("*")
-        .eq("workbench_id", workbenchId)
         .order("created_at", { ascending: false });
+        
+      if (workbenchId) {
+        query = query.eq("workbench_id", workbenchId);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setDocuments(data || []);
@@ -93,48 +98,18 @@ export default function DocumentSidebar({ isOpen, onClose, workbenchId }) {
   };
 
   const handleUploadClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      setUploading(true);
-
-      const docData = await backendService.uploadDocument(
-        workbenchId,
-        file,
-        selectedType
-      );
-
-      setDocuments([docData, ...documents]);
-      toast.success("Document uploaded and processing started");
-    } catch (err) {
-      console.error("Upload error:", err);
-      toast.error(err.message || "Failed to upload document");
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+    // Navigate globally to the new ingestion pipeline setup.
+    onClose();
+    if (workbenchId) {
+      navigate(`/ingest?workbench=${workbenchId}`);
+    } else {
+      navigate("/ingest");
     }
   };
 
   const handleOpenFile = async (doc) => {
-    try {
-      const { data, error } = await supabase.storage
-        .from("workbench-documents")
-        .createSignedUrl(doc.file_path, 3600); // 1 hour expiry
-
-      if (error) throw error;
-
-      if (data?.signedUrl) {
-        window.open(data.signedUrl, '_blank');
-      }
-    } catch (err) {
-      console.error("Error opening file:", err);
-      toast.error("Failed to open document");
-    }
+    // Legacy file viewer disabled. Files now processed instantly via Pipeline.
+    // Future: Route to a dataset summary dashboard.
   };
 
   const formatSize = (bytes) => {
@@ -179,13 +154,6 @@ export default function DocumentSidebar({ isOpen, onClose, workbenchId }) {
               </p>
             </div>
             <div className="flex items-center space-x-4">
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                onChange={handleFileChange} 
-                className="hidden" 
-              />
-              
               <div className="relative">
                 <button 
                   onClick={() => setShowTypeSelector(!showTypeSelector)}
@@ -218,15 +186,10 @@ export default function DocumentSidebar({ isOpen, onClose, workbenchId }) {
 
               <button 
                 onClick={handleUploadClick}
-                disabled={uploading}
-                className="flex items-center space-x-2 px-5 py-2 rounded-full bg-primary text-black hover:opacity-90 transition-all text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center space-x-2 px-5 py-2 rounded-full bg-[#81E6D9] text-black hover:opacity-90 transition-all text-sm font-bold"
               >
-                {uploading ? (
-                  <BsArrowRepeat className="animate-spin" />
-                ) : (
-                  <BsUpload className="text-base stroke-1" />
-                )}
-                <span>{uploading ? "Uploading..." : "Upload"}</span>
+                <BsUpload className="text-base stroke-1" />
+                <span>New Dataset</span>
               </button>
               
               <button 
@@ -257,16 +220,20 @@ export default function DocumentSidebar({ isOpen, onClose, workbenchId }) {
               </div>
             ) : (
               documents.map((doc) => {
-                const status = STATUS_CONFIG[doc.processing_status] || STATUS_CONFIG.uploaded;
+                const statusStr = doc.status?.toLowerCase() || 'pending';
+                // map new dataset statuses to old status configurations
+                const mappedStatus = statusStr === 'completed' ? 'processed' : statusStr === 'pending' ? 'uploaded' : statusStr;
+                const status = STATUS_CONFIG[mappedStatus] || STATUS_CONFIG.uploaded;
                 const StatusIcon = status.icon;
-                const docType = DOCUMENT_TYPES.find(t => t.id === doc.document_type) || DOCUMENT_TYPES[5];
+                
+                const docType = DOCUMENT_TYPES[0]; // generic fallback
 
                 return (
                   <Card key={doc.id} className="group relative p-0 border-white/5 hover:border-primary/20 transition-all duration-300">
                     <div className="p-4">
                       <div className="flex items-center space-x-4 mb-4">
                         <div className={`p-3 rounded-xl ${docType.color.split(' ')[0]} bg-opacity-10 group-hover:scale-110 transition-transform duration-300`}>
-                          {doc.file_name.endsWith('.pdf') ? (
+                          {doc.filename && doc.filename.endsWith('.pdf') ? (
                             <BsFileEarmarkPdf className={`text-xl ${docType.color.split(' ')[1]}`} />
                           ) : (
                             <BsFileEarmarkText className={`text-xl ${docType.color.split(' ')[1]}`} />
@@ -275,18 +242,20 @@ export default function DocumentSidebar({ isOpen, onClose, workbenchId }) {
                         
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
-                            <h4 className="text-sm font-bold text-white truncate pr-4 group-hover:text-primary transition-colors">
-                              {doc.file_name}
+                            <h4 className="text-sm font-bold text-white truncate pr-4 group-hover:text-[#81E6D9] transition-colors">
+                              {doc.filename}
                             </h4>
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${docType.color}`}>
-                              {docType.label}
-                            </span>
+                            {doc.quality_score > 0 && (
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wider bg-emerald-500/10 text-emerald-400`}>
+                                Score: {doc.quality_score}%
+                              </span>
+                            )}
                           </div>
                           
                           <div className="flex items-center text-[11px] text-gray-500 font-medium space-x-2">
                             <span>{formatDate(doc.created_at)}</span>
                             <BsDot className="text-lg" />
-                            <span>{formatSize(doc.file_size)}</span>
+                            <span>{doc.row_count} rows</span>
                           </div>
                         </div>
                       </div>

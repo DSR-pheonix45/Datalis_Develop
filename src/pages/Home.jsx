@@ -1,36 +1,27 @@
 import { useTheme } from "../context/ThemeContext";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
 import Hero from "../components/landing/Hero";
-import FeaturesGrid from "../components/landing/FeaturesGrid";
-import InteractiveWorkflow from "../components/landing/InteractiveWorkflow";
-import Testimonial from "../components/landing/Testimonial";
-import WhyChoose from "../components/landing/WhyChoose";
-import Pricing from "../components/landing/Pricing";
-import FinalCTA from "../components/landing/FinalCTA";
-import FAQ from "../components/landing/FAQ";
+import {
+  HowItWorks,
+  WhatYouCanGenerate,
+  TheWorkspace,
+  AIIntelligence,
+  DataToDecisions,
+  PricingSection,
+  FinalCTASection,
+} from "../components/landing/LandingSections";
 
 export default function Home() {
   const { theme } = useTheme();
-  const navigate = useNavigate();
   const [bgSize, setBgSize] = useState("100% auto");
 
   useEffect(() => {
     const updateBgSize = () => {
       const width = window.innerWidth;
-      if (width < 640) {
-        // Mobile: scale up the pattern so it's visible
-        setBgSize("300% auto");
-      } else if (width < 1024) {
-        // Tablet
-        setBgSize("180% auto");
-      } else {
-        // Desktop
-        setBgSize("100% auto");
-      }
+      if (width < 640) setBgSize("300% auto");
+      else if (width < 1024) setBgSize("180% auto");
+      else setBgSize("100% auto");
     };
-
     updateBgSize();
     window.addEventListener("resize", updateBgSize);
     return () => window.removeEventListener("resize", updateBgSize);
@@ -38,29 +29,42 @@ export default function Home() {
 
   return (
     <div
-      className={`min-h-screen relative ${theme === "dark" ? "bg-[#0a0a0a]" : "bg-[#d5d5d5]"
-        }`}
+      className={`min-h-screen relative ${theme === "dark" ? "bg-[#0a0a0a]" : "bg-[#f0f0f0]"}`}
       style={{
-        backgroundImage: `url('/${theme === "dark" ? "bg-pattern.png" : "Basic Set (3).png"
-          }')`,
+        backgroundImage: `url('/${theme === "dark" ? "bg-pattern.png" : "Basic Set (3).png"}')`,
         backgroundSize: bgSize,
         backgroundPosition: "top center",
         backgroundRepeat: "no-repeat",
       }}
     >
-      {/* Content */}
       <div className="relative z-10">
         <main>
+          {/* Hero — AI Template Generator (do not modify) */}
           <Hero />
-          <FeaturesGrid />
-          <InteractiveWorkflow />
-          <Testimonial />
-          <WhyChoose />
-          <Pricing />
-          <FAQ />
-          <FinalCTA />
+
+          {/* S1: How It Works */}
+          <HowItWorks />
+
+          {/* S2: Template Gallery */}
+          <WhatYouCanGenerate />
+
+          {/* S3: The Workspace */}
+          <TheWorkspace />
+
+          {/* S4: AI Intelligence */}
+          <AIIntelligence />
+
+          {/* S5: Data to Decisions */}
+          <DataToDecisions />
+
+          {/* S6: Pricing */}
+          <PricingSection />
+
+          {/* S7: Final CTA */}
+          <FinalCTASection />
         </main>
       </div>
     </div>
   );
 }
+

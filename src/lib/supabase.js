@@ -3,8 +3,17 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Initialize Supabase client
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Initialize Supabase client with PKCE auth flow
+// PKCE uses ?code= query params instead of #access_token= hash fragments,
+// allowing React Router to properly route the OAuth callback.
+const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    flowType: 'pkce',
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+  },
+});
 
 export { supabase };
 

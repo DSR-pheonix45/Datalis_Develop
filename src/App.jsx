@@ -1,5 +1,5 @@
-import React, { Suspense, lazy } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom";
+import React, { Suspense, lazy, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useNavigate, useLocation } from "react-router-dom";
 import Maintenance from "./pages/Maintenance";
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
@@ -42,6 +42,7 @@ const MainApp = lazy(() => import("./components/MainApp"));
 const Settings = lazy(() => import("./components/Settings/Settings"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
+const DataIngestionPage = lazy(() => import("./pages/DataIngestion"));
 
 // Loading Component
 const PageLoader = () => (
@@ -67,6 +68,28 @@ function LandingLayout({ children }) {
   );
 }
 
+// Fallback: Detect hash fragment with access_token on root URL
+// and redirect to /oauth/callback so the existing handler processes it.
+// This catches edge cases where implicit flow is still triggered.
+function HashRedirect() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (
+      location.pathname === '/' &&
+      hash &&
+      (hash.includes('access_token=') || hash.includes('refresh_token='))
+    ) {
+      // Redirect to OAuth callback with the hash preserved
+      navigate(`/oauth/callback${hash}`, { replace: true });
+    }
+  }, [location, navigate]);
+
+  return null;
+}
+
 function App() {
   return (
     <Router>
@@ -74,6 +97,7 @@ function App() {
         <AuthProvider>
           <ThemeProvider>
             <ScrollToTop />
+            <HashRedirect />
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 {/* Public Landing Pages with Persistent Layout */}
@@ -106,6 +130,11 @@ function App() {
                   <Route path="/terms" element={<TermsOfService />} />
                   <Route path="/privacy" element={<PrivacyPolicy />} />
                   <Route path="/pricing" element={<PaymentComingSoon />} />
+                  <Route path="/ingest" element={
+                    <ProtectedRoute>
+                      <DataIngestionPage />
+                    </ProtectedRoute>
+                  } />
                 </Route>
                 <Route path="/oauth/callback" element={<OAuthCallback />} />
                 <Route path="/auth/callback" element={<OAuthCallback />} />

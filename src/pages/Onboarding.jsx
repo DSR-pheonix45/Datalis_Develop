@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { User, Briefcase, CheckCircle, ArrowRight, Loader } from 'lucide-react';
 import BrandLogo from '../components/common/BrandLogo';
+import { consumeRedirectIntent } from '../utils/redirectUtility';
 
 export default function Onboarding() {
   const { user, profile, setProfile } = useAuth();
@@ -49,10 +50,23 @@ export default function Onboarding() {
 
     setLoading(true);
     try {
+      const { data: existing, error: fetchError } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      if (!existing) {
+        throw new Error('Profile record not found for current user');
+      }
+
       const { data, error } = await supabase
         .from('user_profiles')
-        .upsert({
-          user_id: user.id,
+        .update({
           name: formData.name,
           role: formData.role,
           contact_number: formData.contact_number,
@@ -66,7 +80,8 @@ export default function Onboarding() {
           domain: formData.domain,
           zoho_integration: formData.zoho_integration,
           status: 'active'
-        }, { onConflict: 'user_id' })
+        })
+        .eq('user_id', user.id)
         .select()
         .maybeSingle();
 
@@ -74,18 +89,22 @@ export default function Onboarding() {
         console.error('[DEBUG] Onboarding: Error during onboarding:', error);
         throw error;
       }
-      
+
       console.log("[DEBUG] Onboarding: Response:", data);
       if (data) {
         setProfile(data);
         setStep(6); // Success step
+
+        const intendedPath = consumeRedirectIntent();
+
         setTimeout(() => {
-          navigate('/dashboard', { state: { fromOnboarding: true } });
+          navigate(intendedPath || '/dashboard', { state: { fromOnboarding: true } });
         }, 2000);
       }
     } catch (error) {
       console.error('Onboarding error:', error);
-      alert('Failed to save profile. Please try again.');
+      const message = typeof error?.message === 'string' ? error.message : 'Failed to save profile';
+      alert(`${message}. Please try again.`);
     } finally {
       setLoading(false);
     }
@@ -140,11 +159,10 @@ export default function Onboarding() {
                       key={role}
                       type="button"
                       onClick={() => setFormData({ ...formData, role })}
-                      className={`px-4 py-3 rounded-xl text-sm font-medium border transition-all ${
-                        formData.role === role
+                      className={`px-4 py-3 rounded-xl text-sm font-medium border transition-all ${formData.role === role
                           ? 'bg-teal-500/10 border-teal-500 text-teal-500'
                           : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20'
-                      }`}
+                        }`}
                     >
                       {role.charAt(0).toUpperCase() + role.slice(1)}
                     </button>
@@ -359,8 +377,8 @@ export default function Onboarding() {
             {step <= 5 && (
               <button
                 type="submit"
-                disabled={loading || 
-                  (step === 1 && (!formData.name || !formData.job_title)) || 
+                disabled={loading ||
+                  (step === 1 && (!formData.name || !formData.job_title)) ||
                   (step === 2 && (!formData.industry || !formData.company_size)) ||
                   (step === 3 && (!formData.company_name || !formData.cin || !formData.pan || !formData.director_name))
                 }
