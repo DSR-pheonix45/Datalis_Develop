@@ -87,7 +87,7 @@ export default function Integrations() {
               Email us
             </a>
             <a
-              href="https://calendly.com/medhansh_k/mk-101"
+              href="https://calendly.com/medhansh_k/new-meeting"
               target="_blank"
               rel="noopener noreferrer"
               className="px-6 py-3 rounded-full text-center font-semibold bg-[#81E6D9] text-black hover:opacity-90 transition"

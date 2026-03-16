@@ -49,7 +49,7 @@ export default function HelpCenter() {
               Need strategic help? We host whiteboard sessions for product evaluation.
             </p>
             <a
-              href="https://calendly.com/medhansh_k/mk-101"
+              href="https://calendly.com/medhansh_k/new-meeting"
               target="_blank"
               rel="noopener noreferrer"
               className="mt-5 inline-flex items-center justify-center px-6 py-3 rounded-full font-semibold bg-[#81E6D9] text-black hover:opacity-90 transition"
@@ -152,7 +152,7 @@ export default function HelpCenter() {
                 Submit request
               </button>
               <a
-                href="https://calendly.com/medhansh_k/mk-101"
+                href="https://calendly.com/medhansh_k/new-meeting"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-8 py-3 rounded-full font-semibold border border-[#81E6D9] text-[#81E6D9] text-center hover:bg-[#81E6D9]/10 transition"
