@@ -76,9 +76,10 @@ serve(async (req) => {
         }
 
         // Now do the Groq Call
-        const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY');
+        // Prefer server-side secret GROQ_API_KEY; fall back to VITE_GROQ_API_KEY if set
+        const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY') || Deno.env.get('VITE_GROQ_API_KEY');
         if (!GROQ_API_KEY) {
-            throw new Error("GROQ_API_KEY secret is not set in Supabase");
+            throw new Error("Missing Groq key. Set GROQ_API_KEY (preferred) or VITE_GROQ_API_KEY in Supabase Function environment.");
         }
 
         const groqCall = async (targetModel: string) => {

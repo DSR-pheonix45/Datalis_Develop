@@ -371,8 +371,27 @@ async function callGroq(systemPrompt, userPrompt, model = MODEL) {
   });
 
   if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.error || `Error ${res.status}: Failed to generate template`);
+    let errorText = "";
+    try {
+      const txt = await res.text();
+      errorText = txt;
+    } catch {}
+
+    // Friendly error mapping
+    if (res.status === 429 || /Free limit reached/i.test(errorText)) {
+      throw new Error("AUTH_REQUIRED: Please log in or sign up to generate spreadsheets.");
+    }
+    if (res.status === 401 || /invalid api key/i.test(errorText)) {
+      throw new Error("LLM_CONFIG_ERROR: Invalid or missing Groq API key on server.");
+    }
+
+    // Fallback generic
+    try {
+      const data = JSON.parse(errorText);
+      throw new Error(data.error || `Error ${res.status}: Failed to generate template`);
+    } catch {
+      throw new Error(`Error ${res.status}: Failed to generate template`);
+    }
   }
 
   const data = await res.json();
@@ -408,6 +427,13 @@ export async function generateTemplateData(userPrompt, templateKey) {
     return extractJSON(raw);
   } catch (err) {
     console.error(`[templateGen] Retry failed (${FALLBACK_MODEL}):`, err.message);
-    throw new Error("Template generation failed. Please check your GROQ API key.");
+    // Show friendly auth message if applicable
+    if (/^AUTH_REQUIRED:/.test(err.message)) {
+      throw new Error("Please log in or sign up to generate spreadsheets.");
+    }
+    if (/^LLM_CONFIG_ERROR:/.test(err.message)) {
+      throw new Error("Template engine is temporarily unavailable. Please try again shortly.");
+    }
+    throw new Error("Template generation failed. Please try again.");
   }
 }
