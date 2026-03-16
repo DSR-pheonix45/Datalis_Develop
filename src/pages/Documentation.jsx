@@ -149,7 +149,7 @@ export default function Documentation() {
           </div>
           <div className="flex flex-col sm:flex-row gap-4">
             <a
-              href="mailto:opportunities@datalis.com?subject=Request%20for%20documentation"
+              href="mailto:opportunities@datalis.in?subject=Request%20for%20documentation"
               className="px-6 py-3 text-center rounded-full border border-[#81E6D9] text-[#81E6D9] hover:bg-[#81E6D9]/10 transition"
             >
               Email the Docs Team

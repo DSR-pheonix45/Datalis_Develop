@@ -31,7 +31,7 @@ export default function HelpCenter() {
             className={`text-lg max-w-2xl mx-auto ${isDark ? "text-gray-400" : "text-gray-600"}`}
           >
             Ask a question, report an issue, or request a walkthrough. Our team responds to
-            every request at opportunities@datalis.com within one business day.
+            every request at opportunities@datalis.in within one business day.
           </motion.p>
         </header>
 
@@ -78,10 +78,10 @@ export default function HelpCenter() {
             Raise a support request
           </h2>
           <p className={`mb-8 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-            Your message lands directly in our shared inbox at opportunities@datalis.com.
+            Your message lands directly in our shared inbox at opportunities@datalis.in.
           </p>
           <form
-            action="mailto:opportunities@datalis.com"
+            action="mailto:opportunities@datalis.in"
             method="POST"
             encType="text/plain"
             className="space-y-6"

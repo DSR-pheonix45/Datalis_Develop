@@ -81,7 +81,7 @@ export default function Integrations() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <a
-              href="mailto:opportunities@datalis.com?subject=New%20integration%20request"
+              href="mailto:opportunities@datalis.in?subject=New%20integration%20request"
               className="px-6 py-3 rounded-full border border-[#81E6D9] text-[#81E6D9] text-center hover:bg-[#81E6D9]/10 transition"
             >
               Email us

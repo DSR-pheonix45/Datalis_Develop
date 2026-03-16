@@ -73,7 +73,7 @@ export default function Careers() {
                   </p>
                 </div>
                 <a
-                  href={`mailto:opportunities@datalis.com?subject=Application%20-%20${encodeURIComponent(role.title)}`}
+                  href={`mailto:opportunities@datalis.in?subject=Application%20-%20${encodeURIComponent(role.title)}`}
                   className="px-6 py-3 rounded-full border border-[#81E6D9] text-[#81E6D9] text-center hover:bg-[#81E6D9]/10 transition"
                 >
                   Apply via Email
@@ -92,7 +92,7 @@ export default function Careers() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <a
-              href="mailto:opportunities@datalis.com?subject=Future%20roles"
+              href="mailto:opportunities@datalis.in?subject=Future%20roles"
               className="px-6 py-3 rounded-full border border-[#81E6D9] text-[#81E6D9] text-center hover:bg-[#81E6D9]/10 transition"
             >
               Introduce yourself
