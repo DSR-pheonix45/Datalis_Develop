@@ -21,6 +21,7 @@ const INTENT_RULES = [
   { key: "sales_tracker", keywords: ["sales", "deal", "pipeline", "lead tracker", "crm", "conversion rate", "revenue target", "sales rep", "closed deals", "quota"] },
   { key: "inventory_tracker", keywords: ["inventory", "stock", "sku", "product quantity", "warehouse", "reorder", "units in stock"] },
   { key: "financial_model", keywords: ["financial model", "financial modeling", "financial projection", "three statement model", "3 statement model", "dcf", "valuation model", "financial forecast", "projections"] },
+  { key: "custom_template", keywords: ["template", "dashboard", "tracker", "planner", "model", "sheet", "record", "log", "report", "journal", "register", "book"] },
 ];
 
 function classifyIntent(prompt) {
@@ -28,7 +29,7 @@ function classifyIntent(prompt) {
   for (const rule of INTENT_RULES) {
     if (rule.keywords.some((kw) => p.includes(kw))) return rule.key;
   }
-  return "custom_template";
+  return null;
 }
 
 // ─── Template Metadata (layouts — no hardcoded rows) ───────────────────────
@@ -579,12 +580,6 @@ export default function Hero() {
 
   const handleGenerate = async () => {
     if (!prompt.trim()) { inputRef.current?.focus(); return; }
-    if (!user) {
-      saveRedirectIntent('/'); // Or save a more specific state if we wanted to restore the prompt
-      setShowAuthModal(true);
-      return;
-    }
-
     setResult(null);
     setError(null);
 
@@ -592,6 +587,13 @@ export default function Hero() {
       // Step 1: Classify
       setLoadingStep("detecting");
       const key = classifyIntent(prompt);
+      
+      if (!key) {
+        setError("Hey, I didn't get which template do you want, can you specify.");
+        setLoadingStep(null);
+        return;
+      }
+      
       await new Promise((r) => setTimeout(r, 400));
 
       // Step 2: Call Groq
@@ -615,6 +617,11 @@ export default function Hero() {
   const handleSuggestion = (p) => { setPrompt(p); inputRef.current?.focus(); };
 
   const handleDownload = () => {
+    if (!user) {
+      saveRedirectIntent('/');
+      setShowAuthModal(true);
+      return;
+    }
     if (!result) return;
     const { template, key } = result;
     const dataRows = template.rows.filter((row) => row.some((c) => c !== ""));

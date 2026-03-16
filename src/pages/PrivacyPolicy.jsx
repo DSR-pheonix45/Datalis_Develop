@@ -167,7 +167,7 @@ export default function PrivacyPolicy({ isModal = false }) {
             content: [
                 "For any privacy-related questions or requests:",
                 "Datalis",
-                "📧 Email: opportunities@datalis.in",
+                "📧 Email: support@dabby.ai",
                 "📍 Operating from India"
             ]
         }

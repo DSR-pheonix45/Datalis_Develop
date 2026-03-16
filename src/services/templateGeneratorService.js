@@ -5,8 +5,8 @@
  * Layout and schema belong to the frontend; only DATA comes from the AI.
  */
 
-const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+import { supabase } from '../lib/supabase';
+
 const MODEL = "llama-3.3-70b-versatile";
 const FALLBACK_MODEL = "llama-3.1-8b-instant";
 
@@ -352,33 +352,32 @@ function extractJSON(text) {
 // ─── Groq API Call ───────────────────────────────────────────────────────────
 
 async function callGroq(systemPrompt, userPrompt, model = MODEL) {
-  if (!GROQ_API_KEY || GROQ_API_KEY === "your_groq_api_key") {
-    throw new Error("VITE_GROQ_API_KEY not configured");
-  }
-  const res = await fetch(GROQ_API_URL, {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  const endpoint = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-template`;
+
+  const res = await fetch(endpoint, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${GROQ_API_KEY}`,
       "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
     },
     body: JSON.stringify({
+      systemPrompt,
+      userMsg: userPrompt,
       model,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      temperature: 0.7,
-      max_tokens: 1500,
-    }),
+      fallbackModel: FALLBACK_MODEL
+    })
   });
+
   if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Groq ${model} error ${res.status}: ${err}`);
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || `Error ${res.status}: Failed to generate template`);
   }
+
   const data = await res.json();
-  const content = data.choices?.[0]?.message?.content;
-  if (!content) throw new Error("Empty response from Groq");
-  return content;
+  if (!data.content) throw new Error("Empty response from server");
+  return data.content;
 }
 
 // ─── Main Export ─────────────────────────────────────────────────────────────

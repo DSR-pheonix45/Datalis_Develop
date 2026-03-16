@@ -5,6 +5,7 @@
 -- NOTE: This migration may not work via `supabase db push` because it targets
 -- the auth schema. Run this SQL directly in the Supabase Dashboard SQL Editor.
 
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW

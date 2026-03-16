@@ -29,6 +29,7 @@ const Api = lazy(() => import("./pages/Api"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const PaymentComingSoon = lazy(() => import("./pages/PricingPage"));
+const Pay = lazy(() => import("./pages/Pay"));
 const Navbar = lazy(() => import("./components/layout/Navbar"));
 const Footer = lazy(() => import("./components/landing/Footer"));
 
@@ -129,6 +130,7 @@ function App() {
                   <Route path="/api" element={<Api />} />
                   <Route path="/terms" element={<TermsOfService />} />
                   <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/pay" element={<Pay />} />
                   <Route path="/pricing" element={<PaymentComingSoon />} />
                   <Route path="/ingest" element={
                     <ProtectedRoute>

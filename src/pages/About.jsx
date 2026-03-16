@@ -377,8 +377,8 @@ export default function About() {
                             <div className="space-y-4">
                                 <div>
                                     <p className="text-sm text-[#81E6D9] mb-1">Email</p>
-                                    <a href="mailto:opportunities@datalis.in" className={`text-sm ${isDark ? "text-white" : "text-[#1a1a1a]"} hover:text-[#81E6D9]`}>
-                                        opportunities@datalis.in
+                                    <a href="mailto:support@dabby.ai" className={`text-sm ${isDark ? "text-white" : "text-[#1a1a1a]"} hover:text-[#81E6D9]`}>
+                                        support@dabby.ai
                                     </a>
                                 </div>
                                 <div>

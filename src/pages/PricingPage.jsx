@@ -23,7 +23,7 @@ export default function PricingPage() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <Pricing />
+        <Pricing showDetails />
       </motion.div>
 
       {/* Footer Info */}

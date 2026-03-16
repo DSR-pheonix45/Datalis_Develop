@@ -303,5 +303,26 @@ export const backendService = {
       console.error('Failed to call get-intelligence:', err);
       throw err;
     }
+  },
+
+  async createSubscriptionLink(planId, customer = {}) {
+    try {
+      const { data, error } = await supabase.functions.invoke('create-subscription', {
+        body: {
+          plan_id: planId,
+          total_count: 12,
+          customer_notify: 1,
+          customer
+        }
+      });
+      if (error) {
+        console.error('Edge Function Error (create-subscription):', error);
+        throw error;
+      }
+      return data;
+    } catch (err) {
+      console.error('Failed to call create-subscription:', err);
+      throw err;
+    }
   }
 };
