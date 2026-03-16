@@ -25,12 +25,19 @@ serve(async (req) => {
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '' // We use service role to modify the rate limit table securely
         )
 
-        // Get Client IP
-        // x-forwarded-for works on Supabase Edge Functions
-        const ipAddress = req.headers.get("x-forwarded-for") || "unknown";
-        
-        // Rate Limiting Logic for non-paying/unauthenticated requests
-        // Check if user is authenticated
+        // Get Client IP (first public IP in X-Forwarded-For; fallbacks included)
+        const xff = req.headers.get("x-forwarded-for") || "";
+        const firstHop = xff.split(",")[0]?.trim() || "";
+        const cfip = req.headers.get("cf-connecting-ip") || "";
+        const realip = req.headers.get("x-real-ip") || "";
+        const ipAddress = firstHop || cfip || realip || "unknown";
+
+        // Rate Limiting Logic: MAX 2 generations per IP "session window"
+        // Apply to all users (authenticated and guests) as requested.
+        // Session window = 3 hours (auto resets after window)
+        const SESSION_WINDOW_MS = 3 * 60 * 60 * 1000;
+
+        // Check if user is authenticated (not used for limiting, kept for future policies)
         const authHeader = req.headers.get('Authorization')
         let user = null;
         if (authHeader && authHeader.replace('Bearer ', '') !== Deno.env.get('SUPABASE_ANON_KEY')) {
@@ -39,8 +46,7 @@ serve(async (req) => {
              user = userData?.user
         }
 
-        // If not authenticated, apply strict 2-request limit based on IP
-        if (!user && ipAddress !== "unknown") {
+        if (ipAddress !== "unknown") {
             const { data: limitData, error: readError } = await supabaseClient
                 .from('template_rate_limits')
                 .select('generation_count, last_generation_at')
@@ -51,9 +57,16 @@ serve(async (req) => {
                 throw new Error('Rate limit check failed')
             }
 
-            if (limitData && limitData.generation_count >= 2) {
-                // Return 429 Too Many Requests
-                 return new Response(JSON.stringify({ error: 'Free limit reached. Please login to generate more spreadsheets.' }), {
+            // Reset window after SESSION_WINDOW_MS
+            let currentCount = limitData?.generation_count ?? 0;
+            const lastAt = limitData?.last_generation_at ? new Date(limitData.last_generation_at).getTime() : 0;
+            const now = Date.now();
+            if (lastAt && now - lastAt > SESSION_WINDOW_MS) {
+                currentCount = 0;
+            }
+
+            if (currentCount >= 2) {
+                return new Response(JSON.stringify({ error: 'Free limit reached. Please login to generate more spreadsheets.' }), {
                     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
                     status: 429,
                 })
@@ -64,14 +77,14 @@ serve(async (req) => {
                 await supabaseClient
                     .from('template_rate_limits')
                     .update({ 
-                        generation_count: limitData.generation_count + 1,
+                        generation_count: currentCount + 1,
                         last_generation_at: new Date().toISOString()
                     })
                     .eq('ip_address', ipAddress)
             } else {
                 await supabaseClient
                     .from('template_rate_limits')
-                    .insert({ ip_address: ipAddress, generation_count: 1 })
+                    .insert({ ip_address: ipAddress, generation_count: 1, last_generation_at: new Date().toISOString() })
             }
         }
 

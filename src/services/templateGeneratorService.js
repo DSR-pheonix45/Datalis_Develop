@@ -379,7 +379,7 @@ async function callGroq(systemPrompt, userPrompt, model = MODEL) {
 
     // Friendly error mapping
     if (res.status === 429 || /Free limit reached/i.test(errorText)) {
-      throw new Error("AUTH_REQUIRED: Please log in or sign up to generate spreadsheets.");
+      throw new Error("LIMIT_REACHED: You have hit the free limit. Continue generating with Starter plans.");
     }
     if (res.status === 401 || /invalid api key/i.test(errorText)) {
       throw new Error("LLM_CONFIG_ERROR: Invalid or missing Groq API key on server.");
@@ -428,8 +428,11 @@ export async function generateTemplateData(userPrompt, templateKey) {
   } catch (err) {
     console.error(`[templateGen] Retry failed (${FALLBACK_MODEL}):`, err.message);
     // Show friendly auth message if applicable
+    if (/^LIMIT_REACHED:/.test(err.message)) {
+      throw new Error("You have hit the free limit. Continue generating with Starter plans.");
+    }
     if (/^AUTH_REQUIRED:/.test(err.message)) {
-      throw new Error("Please log in or sign up to generate spreadsheets.");
+      throw new Error("Please log in or sign up to generate spreadsheets."); // kept for backward compatibility
     }
     if (/^LLM_CONFIG_ERROR:/.test(err.message)) {
       throw new Error("Template engine is temporarily unavailable. Please try again shortly.");
