@@ -30,7 +30,7 @@ export default function PricingPage() {
       <div className="max-w-7xl mx-auto px-6 pb-24 text-center">
         <p className={`text-sm ${isDark ? "text-gray-500" : "text-gray-400"}`}>
           Secure checkout via Razorpay. Need help?{" "}
-          <a href="mailto:support@dabby.ai" className="text-[#81E6D9] hover:underline">
+          <a href="mailto:opportunities@datalis.in" className="text-[#81E6D9] hover:underline">
             Contact Support
           </a>
         </p>

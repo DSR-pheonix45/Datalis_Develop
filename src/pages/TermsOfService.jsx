@@ -166,7 +166,7 @@ export default function TermsOfService({ isModal = false }) {
             content: [
                 "For questions or concerns regarding these Terms:",
                 "Datalis",
-                "📧 Email: support@dabby.ai",
+                "📧 Email: opportunities@datalis.in",
                 "📍 Operating from India"
             ]
         }

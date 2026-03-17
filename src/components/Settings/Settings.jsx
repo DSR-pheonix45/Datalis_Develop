@@ -309,7 +309,7 @@ export default function Settings() {
               <h3 className="text-white font-semibold text-sm lg:text-base mb-1 lg:mb-2">Need more help?</h3>
               <p className="text-xs lg:text-sm text-gray-400 mb-3 lg:mb-4">Our support team is here to help.</p>
               <a
-                href="mailto:support@dabby.ai"
+                href="mailto:opportunities@datalis.in"
                 className="inline-flex items-center gap-2 text-teal-400 hover:text-teal-300 text-xs lg:text-sm font-medium"
               >
                 Contact Support →

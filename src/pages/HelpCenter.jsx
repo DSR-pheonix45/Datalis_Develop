@@ -78,10 +78,10 @@ export default function HelpCenter() {
             Raise a support request
           </h2>
           <p className={`mb-8 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-            Your message lands directly in our shared inbox at support@dabby.ai.
+            Your message lands directly in our shared inbox at opportunities@datalis.in.
           </p>
           <form
-            action="mailto:support@dabby.ai"
+            action="mailto:opportunities@datalis.in"
             method="POST"
             encType="text/plain"
             className="space-y-6"
