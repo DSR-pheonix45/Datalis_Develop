@@ -342,8 +342,8 @@ async function callGeminiAPI(request) {
   try {
     if (!GEMINI_API_KEY) throw new Error("Gemini API key not configured");
 
-    // Using v1beta endpoint - corrected model name from 'gemini-1.5-flash-latest' to 'gemini-1.5-flash'
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    // Using v1beta endpoint - switching to 'gemini-3-flash-preview' for latest performance
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${GEMINI_API_KEY}`;
     
     // Log small portion of key for diagnostic purposes (first 4 chars)
     if (GEMINI_API_KEY) {
@@ -416,7 +416,7 @@ Current System Date: ${new Date().toLocaleDateString('en-US', { weekday: 'long',
     return {
       response: responseText,
       context: request.context,
-      model: "gemini-1.5-flash"
+      model: "gemini-3-flash-preview"
     };
   } catch (error) {
     console.error("❌ Gemini API call failed:", error);
