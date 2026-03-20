@@ -20,7 +20,7 @@ export default function FileUploader({ onFileAccepted, maxSizeBytes = 10 * 1024 
     if (!file) return false;
 
     // 1. Validate Type
-    const validExtensions = [".csv", ".xlsx", ".xls"];
+    const validExtensions = [".csv", ".xlsx", ".xls", ".xml"];
     const fileExtension = file.name.slice((Math.max(0, file.name.lastIndexOf(".")) || Infinity)).toLowerCase();
     
     if (!validExtensions.includes(fileExtension)) {
@@ -77,7 +77,7 @@ export default function FileUploader({ onFileAccepted, maxSizeBytes = 10 * 1024 
       >
         <input 
           type="file" 
-          accept=".csv,.xlsx,.xls"
+          accept=".csv,.xlsx,.xls,.xml"
           onChange={handleChange}
           disabled={isLoading}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed" 
@@ -96,7 +96,7 @@ export default function FileUploader({ onFileAccepted, maxSizeBytes = 10 * 1024 
               Drag & drop your financial data
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              CSV, Excel, Bank Statements or App Exports. Up to {maxSizeBytes / (1024 * 1024)}MB.
+              CSV, Excel, or Tally XML exports. Up to {maxSizeBytes / (1024 * 1024)}MB.
             </p>
           </div>
           

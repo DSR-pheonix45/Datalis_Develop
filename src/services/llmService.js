@@ -230,6 +230,10 @@ async function callGroqAPI(request, model) {
   try {
     const apiKey = GROQ_API_KEY;
 
+    if (apiKey) {
+      console.log(`Using Groq key starting with: ${apiKey.substring(0, 4)}...`);
+    }
+
     if (!apiKey || apiKey === "PASTE_YOUR_GROQ_API_KEY_HERE") {
       throw new Error(
         "⚠️ GROQ_API_KEY not configured!\n\n" +
@@ -338,8 +342,13 @@ async function callGeminiAPI(request) {
   try {
     if (!GEMINI_API_KEY) throw new Error("Gemini API key not configured");
 
-    // Using v1beta endpoint which has better support for latest models
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+    // Using v1beta endpoint - corrected model name from 'gemini-1.5-flash-latest' to 'gemini-1.5-flash'
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    
+    // Log small portion of key for diagnostic purposes (first 4 chars)
+    if (GEMINI_API_KEY) {
+      console.log(`Using Gemini key starting with: ${GEMINI_API_KEY.substring(0, 4)}...`);
+    }
 
     const systemPrompt = `### IDENTITY
 You are Dabby Consultant, an elite Financial Auditor and Forensic Accountant. You operate with absolute precision and ZERO tolerance for fabrication.
@@ -392,18 +401,22 @@ Current System Date: ${new Date().toLocaleDateString('en-US', { weekday: 'long',
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.warn(`❌ Gemini API Error (${response.status}):`, errorText);
       throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
     const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    if (!responseText) throw new Error("No response from Gemini API");
+    if (!responseText) {
+      console.warn("No response text in Gemini data:", data);
+      throw new Error("No response from Gemini API");
+    }
 
     return {
       response: responseText,
       context: request.context,
-      model: "gemini-1.5-flash-latest"
+      model: "gemini-1.5-flash"
     };
   } catch (error) {
     console.error("❌ Gemini API call failed:", error);
@@ -417,6 +430,10 @@ Current System Date: ${new Date().toLocaleDateString('en-US', { weekday: 'long',
 async function callOpenRouterAPI(request) {
   try {
     if (!OPENROUTER_API_KEY) throw new Error("OpenRouter API key not configured");
+
+    if (OPENROUTER_API_KEY) {
+      console.log(`Using OpenRouter key starting with: ${OPENROUTER_API_KEY.substring(0, 4)}...`);
+    }
 
     const truncatedContext = getTruncatedContext(request.context, "openrouter");
 
