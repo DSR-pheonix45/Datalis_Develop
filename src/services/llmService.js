@@ -9,18 +9,13 @@ const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 // Get Groq API key from environment variable
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 
-// Fallback API keys
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
-
 // Provider-specific context limits (characters)
 // Groq Free Tier has strict TPM (tokens per minute) limits. 1 token ~= 4 chars.
 // Llama 3.3 70b approx 6000 tokens limit = ~24,000 chars total for system + history + user + context.
 const PROVIDER_LIMITS = {
   groq: 15000,      // Reduced to keep within 6k TPM limits safely
-  gemini: 150000,   // Flash has 1M context
-  openrouter: 100000 // Most models have large context
 };
+
 
 /**
  * Truncate context based on the provider's limits
@@ -335,184 +330,10 @@ USER QUERY: ${request.query}` +
   }
 }
 
-/**
- * Fallback: Call Gemini API directly
- */
-async function callGeminiAPI(request) {
-  try {
-    if (!GEMINI_API_KEY) throw new Error("Gemini API key not configured");
 
-    // Using v1beta endpoint - switching to 'gemini-3-flash-preview' for latest performance
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${GEMINI_API_KEY}`;
-    
-    // Log small portion of key for diagnostic purposes (first 4 chars)
-    if (GEMINI_API_KEY) {
-      console.log(`Using Gemini key starting with: ${GEMINI_API_KEY.substring(0, 4)}...`);
-    }
-
-    const systemPrompt = `### IDENTITY
-You are Dabby Consultant, an elite Financial Auditor and Forensic Accountant. You operate with absolute precision and ZERO tolerance for fabrication.
-
-### MISSION
-Your mission is to analyze business documents. If a data point is not explicitly present in the provided context, you MUST report it as missing. 
-
-### THE "ZERO FABRICATION" PROTOCOL (MANDATORY)
-1. **NO EXTRAPOLATION**: Never "fill in the blanks". If an invoice ID, date, or customer name is missing from the data, do not invent one to complete a table.
-2. **SOURCE VERIFICATION**: Every single digit, date, and name in your response must have a direct 1:1 match in the "RELEVANT DATA" section below.
-3. **HALLUCINATION IS FAILURE**: Fabricating even a single customer name or date is a critical system failure. If you are unsure, state: "Data not available in source files."
-4. **DATE INTEGRITY**: Respect the source dates. If a file contains data from 2024, do not transform it to 2026.
-5. **AUDIT TRAIL**: If asked to generate a table, only include rows that exist in the source data. Do not add "sample" or "placeholder" rows.
-
-### OUTPUT STYLE
-- **Conversational & Professional**: Maintain a helpful, natural tone. Avoid rigid headers like "Direct Answer" or "Data Source" unless providing complex reports.
-- **Evidence-Based**: While being natural, your answers must still be strictly derived from the provided context.
-- **Transparency**: If you use data from a specific file, mention it naturally (e.g., "According to the invoice from...") instead of using a dedicated section.
-- **Handling Gaps**: If information is missing, simply state it naturally as part of your response.
-
-Current System Date: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`;
-
-    const truncatedContext = getTruncatedContext(request.context, "gemini");
-
-    // Map history for Gemini format
-    const history = (request.history || []).map(msg => ({
-      role: msg.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: msg.content }]
-    }));
-
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contents: [
-          ...history,
-          {
-            role: "user",
-            parts: [{ text: `SYSTEM INSTRUCTIONS: ${systemPrompt}\n\nUSER QUERY: ${request.query}${truncatedContext ? `\n\nCONTEXT: ${truncatedContext}` : ""}` }]
-          }
-        ],
-        generationConfig: {
-          temperature: 0.1, // Lowered for precision
-          maxOutputTokens: 2048,
-        }
-      })
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.warn(`❌ Gemini API Error (${response.status}):`, errorText);
-      throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
-    }
-
-    const data = await response.json();
-    const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!responseText) {
-      console.warn("No response text in Gemini data:", data);
-      throw new Error("No response from Gemini API");
-    }
-
-    return {
-      response: responseText,
-      context: request.context,
-      model: "gemini-3-flash-preview"
-    };
-  } catch (error) {
-    console.error("❌ Gemini API call failed:", error);
-    throw error;
-  }
-}
-
-/**
- * Fallback: Call OpenRouter API
- */
-async function callOpenRouterAPI(request) {
-  try {
-    if (!OPENROUTER_API_KEY) throw new Error("OpenRouter API key not configured");
-
-    if (OPENROUTER_API_KEY) {
-      console.log(`Using OpenRouter key starting with: ${OPENROUTER_API_KEY.substring(0, 4)}...`);
-    }
-
-    const truncatedContext = getTruncatedContext(request.context, "openrouter");
-
-    // Map history and sanitize messages
-    const formattedHistory = (request.history || []).map(msg => ({
-      role: msg.role,
-      content: msg.content
-    }));
-
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": window.location.origin,
-        "X-Title": "Dabby Consultant"
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.0-flash-001",
-        messages: [
-          {
-            role: "system",
-            content: `### IDENTITY
-You are Dabby Consultant, an elite Financial Auditor and Forensic Accountant. You operate with absolute precision and ZERO tolerance for fabrication.
-
-### MISSION
-Your mission is to analyze business documents. If a data point is not explicitly present in the provided context, you MUST report it as missing. 
-
-### THE "ZERO FABRICATION" PROTOCOL (MANDATORY)
-1. **NO EXTRAPOLATION**: Never "fill in the blanks". If an invoice ID, date, or customer name is missing from the data, do not invent one to complete a table.
-2. **SOURCE VERIFICATION**: Every single digit, date, and name in your response must have a direct 1:1 match in the "RELEVANT DATA" section below.
-3. **HALLUCINATION IS FAILURE**: Fabricating even a single customer name or date is a critical system failure. If you are unsure, state: "Data not available in source files."
-4. **DATE INTEGRITY**: Respect the source dates. If a file contains data from 2024, do not transform it to 2026.
-5. **AUDIT TRAIL**: If asked to generate a table, only include rows that exist in the source data. Do not add "sample" or "placeholder" rows.
-
-### OUTPUT STYLE
-- **Conversational & Professional**: Maintain a helpful, natural tone. Avoid rigid headers like "Direct Answer" or "Data Source" unless providing complex reports.
-- **Evidence-Based**: While being natural, your answers must still be strictly derived from the provided context.
-- **Transparency**: If you use data from a specific file, mention it naturally (e.g., "According to the invoice from...") instead of using a dedicated section.
-- **Handling Gaps**: If information is missing, simply state it naturally as part of your response.
-
-Current System Date: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`
-          },
-          ...formattedHistory,
-          {
-            role: "user",
-            content: `SOURCE DATA CHECK: I am providing you with files. Do not use your internal knowledge to create fake data. Only use the provided context.
-            
-            USER QUERY: ${request.query}` + (truncatedContext ? `\n\n=== RELEVANT DATA / FILE CONTENT ===\n${truncatedContext}` : "\n\n(No file context provided. Do not invent any data.)")
-          }
-        ],
-        temperature: 0.1
-      })
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`OpenRouter API error: ${response.status} - ${errorText}`);
-    }
-
-    const data = await response.json();
-    const responseText = data.choices?.[0]?.message?.content;
-
-    if (!responseText) throw new Error("No response from OpenRouter API");
-
-    return {
-      response: responseText,
-      context: request.context,
-      model: "google/gemini-2.0-flash-001"
-    };
-  } catch (error) {
-    console.error("❌ OpenRouter API call failed:", error);
-    throw error;
-  }
-}
 
 export async function callLLMDirectly(request) {
   // 1. Try FREE Groq models first
-
   for (let i = 0; i < FREE_MODELS.length; i++) {
     const model = FREE_MODELS[i];
     try {
@@ -533,33 +354,12 @@ export async function callLLMDirectly(request) {
     }
   }
 
-  // 2. Fallback to Gemini if Groq fails
-  if (GEMINI_API_KEY) {
-    try {
-      console.log("🚀 Trying Gemini fallback...");
-      const result = await callGeminiAPI(request);
-      return result;
-    } catch (error) {
-      console.warn("❌ Gemini fallback failed:", error.message);
-    }
-  }
-
-  // 3. Fallback to OpenRouter as last resort
-  if (OPENROUTER_API_KEY) {
-    try {
-      console.log("🚀 Trying OpenRouter fallback...");
-      const result = await callOpenRouterAPI(request);
-      return result;
-    } catch (error) {
-      console.error("❌ OpenRouter fallback failed:", error.message);
-    }
-  }
-
   return {
-    response: "I'm sorry, I'm having trouble connecting to my AI engines. This could be due to invalid API keys or rate limits. Please check your configuration in the .env file.",
-    error: "All LLM providers failed"
+    response: "I'm sorry, I'm having trouble connecting to the Groq AI engine. This could be due to an invalid API key or rate limits. Please check your configuration in the .env file.",
+    error: "Groq API call failed"
   };
 }
+
 
 
 
